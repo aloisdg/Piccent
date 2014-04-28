@@ -8,34 +8,40 @@ using System.Windows.Navigation;
 using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
 using Piccent.Resources;
+using Microsoft.Phone.Tasks;
+using System.Windows.Media.Imaging;
 
 namespace Piccent
 {
     public partial class MainPage : PhoneApplicationPage
     {
-        // Constructor
+        PhotoChooserTask photoChooserTask;
+        BitmapImage mainImage;
+
         public MainPage()
         {
             InitializeComponent();
 
-            // Sample code to localize the ApplicationBar
-            //BuildLocalizedApplicationBar();
+            photoChooserTask = new PhotoChooserTask();
+            photoChooserTask.Completed += new EventHandler<PhotoResult>(photoChooserTask_Completed);
         }
 
-        // Sample code for building a localized ApplicationBar
-        //private void BuildLocalizedApplicationBar()
-        //{
-        //    // Set the page's ApplicationBar to a new instance of ApplicationBar.
-        //    ApplicationBar = new ApplicationBar();
+        private void photoChooserTask_Completed(object sender, PhotoResult e)
+        {
+            if (e.TaskResult == TaskResult.OK)
+            {
+                MessageBox.Show(e.ChosenPhoto.Length.ToString());
 
-        //    // Create a new button and set the text value to the localized string from AppResources.
-        //    ApplicationBarIconButton appBarButton = new ApplicationBarIconButton(new Uri("/Assets/AppBar/appbar.add.rest.png", UriKind.Relative));
-        //    appBarButton.Text = AppResources.AppBarButtonText;
-        //    ApplicationBar.Buttons.Add(appBarButton);
+                //Code to display the photo on the page in an image control named myImage.
+                mainImage = new BitmapImage();
+                mainImage.SetSource(e.ChosenPhoto);
+                MainImage.Source = mainImage;
+            }
+        }
 
-        //    // Create a new menu item with the localized string from AppResources.
-        //    ApplicationBarMenuItem appBarMenuItem = new ApplicationBarMenuItem(AppResources.AppBarMenuItemText);
-        //    ApplicationBar.MenuItems.Add(appBarMenuItem);
-        //}
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            photoChooserTask.Show();
+        }
     }
 }
