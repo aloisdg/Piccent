@@ -32,6 +32,9 @@ namespace Piccent
             // Phone-specific initialization
             InitializePhoneApplication();
 
+            // Dark Theme
+            //ThemeManager.ToDarkTheme();
+
             // Language display initialization
             InitializeLanguage();
 

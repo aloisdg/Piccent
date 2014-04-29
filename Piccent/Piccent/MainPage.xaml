@@ -11,27 +11,113 @@
     FontSize="{StaticResource PhoneFontSizeNormal}"
     Foreground="{StaticResource PhoneForegroundBrush}"
     SupportedOrientations="Portrait" Orientation="Portrait"
-    shell:SystemTray.IsVisible="True">
+    shell:SystemTray.IsVisible="False">
+    <phone:PhoneApplicationPage.Resources>
+        <Style x:Key="LargeButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PhoneForegroundBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource PhoneForegroundBrush}"/>
+            <Setter Property="BorderThickness" Value="{StaticResource PhoneBorderThickness}"/>
+            <Setter Property="FontFamily" Value="Segoe UI Symbol"/>
+            <Setter Property="FontSize" Value="32"/>
+            <Setter Property="FontWeight" Value="ExtraBold"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="Transparent">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal"/>
+                                    <VisualState x:Name="MouseOver"/>
+                                    <VisualState x:Name="Pressed">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground" Storyboard.TargetName="ContentContainer">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PhoneButtonBasePressedForegroundBrush}"/>
+                                            </ObjectAnimationUsingKeyFrames>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Background" Storyboard.TargetName="ButtonBackground">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PhoneAccentBrush}"/>
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Disabled">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Foreground" Storyboard.TargetName="ContentContainer">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PhoneDisabledBrush}"/>
+                                            </ObjectAnimationUsingKeyFrames>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="BorderBrush" Storyboard.TargetName="ButtonBackground">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PhoneDisabledBrush}"/>
+                                            </ObjectAnimationUsingKeyFrames>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="Background" Storyboard.TargetName="ButtonBackground">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent"/>
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <Border x:Name="ButtonBackground" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" CornerRadius="0" Margin="0">
+                                <ContentControl x:Name="ContentContainer" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}" HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" Padding="{TemplateBinding Padding}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </phone:PhoneApplicationPage.Resources>
 
-    <Grid x:Name="LayoutRoot" Background="Transparent">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <Grid x:Name="LayoutRoot" Background="Transparent" >
+        <!--<Image Source="/Assets/AlignmentGrid.png" VerticalAlignment="Top" Height="800" Width="480" Margin="0,-9,0,0" Grid.Row="0" Grid.RowSpan="2" IsHitTestVisible="False" />-->
+        <!--<Image Stretch="UniformToFill" Source="{Binding Source, ElementName=MainImage }" />-->
 
-        <StackPanel x:Name="TitlePanel" Grid.Row="0" Margin="12,17,0,28">
-            <TextBlock Text="MY APPLICATION" Style="{StaticResource PhoneTextNormalStyle}" Margin="12,0"/>
-            <TextBlock Text="page name" Margin="9,-7,0,0" Style="{StaticResource PhoneTextTitle1Style}"/>
-        </StackPanel>
+        <!--<Image x:Name="MainImage" Stretch="UniformToFill" />
+        <Grid x:Name="Overlay" Background="#AAFFFFFF" />-->
 
-        <Grid x:Name="ContentPanel" Grid.Row="1" Margin="12,0,12,0">
-            <StackPanel>
-                <Image Height="300" x:Name="MainImage" />
-                <Button Height="100" Click="Button_Click" ></Button>
-            </StackPanel>
+        <Grid Margin="24">
+            <TextBlock VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,0,0,0" Text="PICCENT" FontWeight="ExtraBold" FontSize="28" TextAlignment="Right" x:Name="TitlePage" />
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="74"/>
+                    <RowDefinition Height="74"/>
+                    <RowDefinition Height="100"/>
+                </Grid.RowDefinitions>
+                <Grid Grid.Row="0" Margin="0,60,0,12">
+                    <Image x:Name="MainImage" Stretch="UniformToFill" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                </Grid>
+
+                <!--<Grid Grid.Row="1" Height="62" x:Name="PaletteTap" Grid.Column="1" Margin="0,0,0,12" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                    <ScrollViewer HorizontalAlignment="Center" VerticalAlignment="Center" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                        <ListBox x:Name="ColorsList" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Disabled" />
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Width="62" Height="62" Background="{Binding Background}" Margin="0,0,12,0" ScrollViewer.VerticalScrollBarVisibility="Disabled"></Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </ScrollViewer>
+                </Grid>-->
+
+                <Grid x:Name="Src" Grid.Row="1" Height="62" Margin="0,0,0,12">
+                    <TextBlock x:Name="SrcText" Foreground="{StaticResource PhoneBackgroundBrush}" FontWeight="ExtraBold" FontSize="36" Margin="0,0,0,-10" TextAlignment="Right" Text="#123456" VerticalAlignment="Bottom" />
+                </Grid>
+
+                <Grid x:Name="Res" Margin="0,0,0,12" Grid.Row="2" Height="62">
+                    <TextBlock Foreground="{StaticResource PhoneBackgroundBrush}" x:Name="ResText" FontWeight="ExtraBold" FontSize="36" Margin="0,0,0,-10" TextAlignment="Right" Text="#123456" VerticalAlignment="Bottom" />
+                </Grid>
+
+                <StackPanel Grid.Row="5" VerticalAlignment="Bottom" Orientation="Horizontal">
+                    <Button x:Name="DrawButton" Style="{StaticResource LargeButtonStyle}" Margin="0,0,0,0" Height="100" Width="322" Click="Button_Click">
+                        <Path Data="M139.007,42.772056C139.08701,42.864753 139.16501,42.955653 139.239,43.052256 139.34401,42.986853 139.46001,42.935153 139.57201,42.876555 139.38101,42.847754 139.19301,42.817954 139.007,42.772056z M140.58801,29.564C144.29601,29.564 147.30501,32.564013 147.30501,36.271026 147.30501,36.486827 147.261,36.689929 147.24101,36.900931 147.841,36.252429 148.69501,35.838424 149.65601,35.838424 151.455,35.838424 152.93001,37.314032 152.93001,39.122638 152.93001,40.932147 151.455,42.407752 149.65601,42.407752 149.33101,42.407752 149.024,42.346251 148.72801,42.260352 148.759,42.460952 148.79001,42.661654 148.79001,42.869655 148.79001,44.867263 147.375,46.521068 145.49501,46.89067 145.35001,48.355578 144.438,49.692981 142.98801,50.295485 141.88701,50.742286 140.70601,50.661685 139.703,50.187583 138.58701,52.126593 136.51801,53.442996 134.117,53.442996 130.69301,53.442996 127.922,50.774985 127.69801,47.399974L127.62601,47.403872C123.07201,47.403872 119.354,43.686057 119.354,39.122638 119.354,34.540519 123.07201,30.842305 127.62601,30.842305 130.343,30.842305 132.73801,32.138209 134.25,34.138217 135.147,31.484408 137.63101,29.564 140.58801,29.564z M14.653799,13.257799L14.653799,109.155C22.317101,108.582 37.683102,107.495 43.971401,107.495 45.7925,107.495 47.904301,107.557 50.204601,107.641 56.319099,104.249 55.955799,93.624999 55.412102,88.650901 53.710899,89.735801 51.695999,90.372596 49.528099,90.372596 45.8008,90.372596 42.510502,88.510299 40.5261,85.670401 39.642601,85.899901 38.721401,86.035201 37.765598,86.035201 31.707001,86.035201 26.789801,81.117202 26.789799,75.060096 26.789801,69.001502 31.707001,64.093802 37.765598,64.093802 37.908901,64.093802 38.048302,64.109397 38.189499,64.114699 37.919899,63.1626 37.765598,62.1626 37.765598,61.1235 37.765598,55.064898 42.683102,50.157699 48.731201,50.157699 48.731201,44.099097 53.658199,39.182097 59.707001,39.182097 65.128403,39.182097 69.628899,43.136699 70.506599,48.318801 71.248802,48.160197 72.017097,48.072799 72.806602,48.072799 78.855003,48.072799 83.781998,52.980498 83.781998,59.0391 83.781998,59.958499 83.6558,60.846198 83.441399,61.700698 84.537804,61.332 85.708504,61.1235 86.929199,61.1235 92.997597,61.1235 97.904999,66.031302 97.904999,72.088401 97.904999,77.9766 93.267097,82.773398 87.436302,83.0391 85.694099,86.790496 81.9077,89.398398 77.507797,89.398398 75.205803,89.398398 73.072998,88.689002 71.310097,87.478995 69.660202,88.592299 67.676498,89.273398 65.5308,89.372596 64.311302,101.392 69.279297,106.412 71.488998,108.021 74.330101,107.941 77.166,107.783 79.917503,107.495 92.722198,106.156 96.980499,102.479 105.212,102.145L113.434,101.81C113.434,101.81 119.6,96.478995 127.635,93.804702 135.67999,91.128898 148.24899,93.135299 152.92999,93.804702 155.88,94.225097 160.23199,93.578101 163.05,93.040496L163.05,13.257799z M0,0L177.94,0 177.94,135.01199 0,135.01199z" Width="36" Height="36" Fill="{StaticResource PhoneForegroundBrush}" Stretch="Fill" />
+                    </Button>
+                    <Button x:Name="LikeButton" Style="{StaticResource LargeButtonStyle}" Margin="11,0,0,0" Height="100" Width="100" Content="&#xE0A5;" Click="Love_Click"/>
+                </StackPanel>
+            </Grid>
         </Grid>
-
-        <!--<Image Source="/Assets/AlignmentGrid.png" VerticalAlignment="Top" Height="800" Width="480" Margin="0,-32,0,0" Grid.Row="0" Grid.RowSpan="2" IsHitTestVisible="False" />-->
     </Grid>
-
 </phone:PhoneApplicationPage>
