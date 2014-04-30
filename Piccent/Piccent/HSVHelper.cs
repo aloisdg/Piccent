@@ -10,6 +10,7 @@ namespace Piccent
     public static class HSVHelper
     {
         // http://stackoverflow.com/questions/21972303/colors-harmony-theory-and-algorithm-compute-complementary-triad-tetratic-etc
+
         public class HSVData
         {
             public double h { get; set; }
@@ -59,9 +60,6 @@ namespace Piccent
             double h = hsvdata.h;
             double s = hsvdata.s;
             double v = hsvdata.v;
-
-            //Debug.Assert(0.0 <= s && s <= 1.0);
-            //Debug.Assert(0.0 <= v && v <= 1.0);
 
             // normalize the hue:
             while (h < 0)

@@ -150,7 +150,7 @@
                     <RowDefinition Height="100"/>
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0" Margin="0,61,0,12">
-                    <Border BorderThickness="3" BorderBrush="{Binding Background, ElementName=Src}">
+                    <Border Tap="Border_Tap" BorderThickness="3" BorderBrush="{Binding Background, ElementName=Src}">
                         <Grid Background="Gray" Opacity="0.2"/>
                     </Border>
                     <Image x:Name="MainImage" Stretch="UniformToFill" VerticalAlignment="Center" HorizontalAlignment="Center" />

@@ -66,6 +66,11 @@ namespace Piccent
         {
             _photoChooserTask.Show();
         }
+
+        private void Border_Tap(object sender, System.Windows.Input.GestureEventArgs e)
+        {
+            _photoChooserTask.Show();
+        }
         #endregion
 
         private void DisplayColor(SolidColorBrush scb)
@@ -75,11 +80,10 @@ namespace Piccent
             SrcTextRGB.Text = ColorConverter.ToRGB(scb.Color);
 
             HSVHelper.HSVData hsv = HSVHelper.ConvertColorToHSV(scb.Color);
-            AccentManager am = new AccentManager();
-
+            
             double diff = 360;
             string nearestColor = "";
-            foreach (var hex in am.AccentDictio.Keys)
+            foreach (var hex in AccentManager.GetKeys())
             {
                 double abs = Math.Abs(HSVHelper.ConvertColorToHSV(ColorConverter.FromHex(hex)).h - hsv.h);
                 if (diff > abs)
@@ -91,10 +95,10 @@ namespace Piccent
 
             Color color = ColorConverter.FromHex(nearestColor);
             Res.Background = new SolidColorBrush(color);
-            string txt;
             ResTextHex.Text = ColorConverter.ToHex(color);
             ResTextRGB.Text = ColorConverter.ToRGB(color);
-            ResTextName.Text = (am.AccentDictio.TryGetValue(color.ToString(), out txt)) ? txt.ToUpper() : "ERROR";
+            string name = AccentManager.GetName(color.ToString());
+            ResTextName.Text = !String.IsNullOrWhiteSpace(name) ? name.ToUpper() : "ERROR";
         }
 
         #region search most numerous color
@@ -253,7 +257,7 @@ namespace Piccent
         private void Love_Click(object sender, RoutedEventArgs e)
         {
             //debug
-            DesignGrid.Opacity = DesignGrid.Opacity == 1 ? 0 : 1;
+            DesignGrid.Opacity = DesignGrid.Opacity == 0 ? 1 : 0;
 
             //MarketplaceReviewTask marketplaceReviewTask = new MarketplaceReviewTask();
             //marketplaceReviewTask.Show();
