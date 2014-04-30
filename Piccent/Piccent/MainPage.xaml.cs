@@ -21,15 +21,17 @@ namespace Piccent
 
     public partial class MainPage : PhoneApplicationPage
     {
-        PhotoChooserTask photoChooserTask;
-        BitmapImage mainImage;
+        #region global
+        PhotoChooserTask _photoChooserTask;
+        BitmapImage _mainImage;
+        #endregion
 
         public MainPage()
         {
             InitializeComponent();
 
-            photoChooserTask = new PhotoChooserTask();
-            photoChooserTask.Completed += new EventHandler<PhotoResult>(photoChooserTask_Completed);
+            _photoChooserTask = new PhotoChooserTask();
+            _photoChooserTask.Completed += new EventHandler<PhotoResult>(photoChooserTask_Completed);
         }
 
         #region get picture
@@ -37,33 +39,51 @@ namespace Piccent
         {
             if (e.TaskResult == TaskResult.OK)
             {
-                //MessageBox.Show(e.ChosenPhoto.Length.ToString());
+                _mainImage = new BitmapImage();
+                _mainImage.SetSource(e.ChosenPhoto);
+                MainImage.Source = _mainImage;
 
-                mainImage = new BitmapImage();
-                mainImage.SetSource(e.ChosenPhoto);
-                MainImage.Source = mainImage;
-
-                WriteableBitmap wb = new WriteableBitmap(mainImage);
+                WriteableBitmap wb = new WriteableBitmap(_mainImage);
                 //SearchColors(wb);
-                SolidColorBrush scb = new SolidColorBrush(getDominantColor(wb));
-                Src.Background = scb;
-                SrcText.Text = HexConverter(scb.Color);
-                Res.Background = new SolidColorBrush((Color)Application.Current.Resources["PhoneAccentColor"]);
-                ResText.Text = GetCurrentMetroString();
-            }
-        }
 
-        public static string HexConverter(Color c)
-        {
-            return "#" + c.R.ToString("X2") + c.G.ToString("X2") + c.B.ToString("X2");
+                DisplayColor(new SolidColorBrush(getDominantColor(wb)));
+            }
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            photoChooserTask.Show();
+            _photoChooserTask.Show();
         }
         #endregion
 
+        private void DisplayColor(SolidColorBrush scb)
+        {
+            Src.Background = scb;
+            SrcText.Text = ColorConverter.ToHex(scb.Color);
+
+            HSVHelper.HSVData hsv = HSVHelper.ConvertColorToHSV(scb.Color);
+            AccentManager am = new AccentManager();
+
+            double diff = 360;
+            string nearestColor = "";
+            foreach (var hex in am.AccentDictio.Keys)
+            {
+                double abs = Math.Abs(HSVHelper.ConvertColorToHSV(ColorConverter.FromHex(hex)).h - hsv.h);
+                if (diff > abs)
+                {
+                    nearestColor = hex;
+                    diff = abs;
+                }
+            }
+
+            Color color = ColorConverter.FromHex(nearestColor);
+            Res.Background = new SolidColorBrush(color);
+            string txt;
+            ResText.Text = ColorConverter.ToHex(color);
+            ResTextName.Text = (am.AccentDictio.TryGetValue(color.ToString(), out txt)) ? txt : "error";
+        }
+
+        #region search most numerous color
         private void SearchColors(WriteableBitmap wb)
         {
             List<Color> l = new List<Color>();
@@ -86,12 +106,14 @@ namespace Piccent
 
             foreach (var grp in g)
             {
-                Debug.WriteLine("{0} {1}", grp.Key, grp.Count());
+                //Debug.WriteLine("{0} {1}", grp.Key, grp.Count());
                 l.Add(new ColorItem() { Background = grp.Key.ToString() });
             }
             //ColorsList.ItemsSource = l;
         }
+        #endregion
 
+        #region search avg color
         // http://stackoverflow.com/questions/1068373/how-to-calculate-the-average-rgb-color-values-of-a-bitmap
         /*private Color CalculateAverageColor(WriteableBitmap bm)
         {
@@ -148,12 +170,15 @@ namespace Piccent
             if (bmp.Pixels.Length == 0)
                 return Colors.White;
 
+            // limit white and black
+            // fixed by myself
+            const double limit = 0.265;
+
             //Used for tally
             int r = 0;
             int g = 0;
             int b = 0;
 
-            double avg = 0;
             int tot = 0;
 
             for (int x = 0; x < bmp.PixelWidth; x++)
@@ -161,41 +186,48 @@ namespace Piccent
                 for (int y = 0; y < bmp.PixelHeight; y++)
                 {
                     Color clr = bmp.GetPixel(x, y);
-
                     HSVHelper.HSVData hsv = HSVHelper.ConvertColorToHSV(clr);
 
-                    avg += hsv.v;
-
-                    if (hsv.v > 0.42 && hsv.s > 0.42)
+                    if (hsv.v > limit && hsv.s > limit)
                     {
                         r += clr.R;
                         g += clr.G;
                         b += clr.B;
                         tot++;
-
                     }
                 }
             }
 
-
+            // be sure to not divide by 0
             if (tot == 0)
-                tot++;
+                tot = 1;
 
-            //r /= bmp.Pixels.Length;
-            //g /= bmp.Pixels.Length;
-            //b /= bmp.Pixels.Length;
-
-            r /= tot;
-            g /= tot;
-            b /= tot;
-
-            Debug.WriteLine(r);
-            Debug.WriteLine(g);
-            Debug.WriteLine(b);
-            Debug.WriteLine(avg / bmp.Pixels.Length);
-
-            return Color.FromArgb((byte)255, (byte)r, (byte)g, (byte)b);
+            return Color.FromArgb((byte)255, (byte)(r / tot), (byte)(g / tot), (byte)(b / tot));
         }
+        #endregion
+
+        #region tap message
+        private void Src_Tap(object sender, System.Windows.Input.GestureEventArgs e)
+        {
+            ShowMessage(SrcText.Text);
+        }
+        private void Res_Tap(object sender, System.Windows.Input.GestureEventArgs e)
+        {
+            ShowMessage(ResText.Text);
+        }
+        private void ShowMessage(string hexa)
+        {
+            MessageBoxResult result = MessageBox.Show(String.Format("Your color is {0}.{1}Save it to Clipboard ?", hexa, Environment.NewLine), "Color", MessageBoxButton.OKCancel);
+
+            if (result == MessageBoxResult.OK)
+            {
+                Clipboard.SetText(hexa);
+            }
+            else if (result == MessageBoxResult.Cancel)
+            {
+            }
+        }
+        #endregion
 
         private void Love_Click(object sender, RoutedEventArgs e)
         {
@@ -203,35 +235,12 @@ namespace Piccent
             marketplaceReviewTask.Show();
         }
 
-        private string GetCurrentMetroString()
+        private void ShowRes_Tap(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            // Determine the accent color.
-            Color currentAccentColorHex = (Color)Application.Current.Resources["PhoneAccentColor"];
-
-            string currentAccentColor = "";
-
-            switch (currentAccentColorHex.ToString())
-            {
-                case "#FF1BA1E2": currentAccentColor = "blue"; break;
-                case "#FFA05000": currentAccentColor = "brown"; break;
-                case "#FF339933": currentAccentColor = "green"; break;
-                case "#FFE671B8": currentAccentColor = "pink"; break;
-                case "#FFA200FF": currentAccentColor = "purple"; break;
-                case "#FFE51400": currentAccentColor = "red"; break;
-                case "#FF00ABA9": currentAccentColor = "teal (viridian)"; break;
-                // Lime changed to #FFA2C139 in Windows Phone OS 7.1.
-                case "#FF8CBF26":
-                case "#FFA2C139": currentAccentColor = "lime"; break;
-                // Magenta changed to # FFD80073 in Windows Phone OS 7.1.
-                case "#FFFF0097":
-                case "#FFD80073": currentAccentColor = "magenta"; break;
-                // #FFF9609 (previously orange) is named mango in Windows Phone OS 7.1.
-                case "#FFF09609": currentAccentColor = "mango (orange)"; break;
-                // Mobile operator or hardware manufacturer color
-                default: currentAccentColor = "custom eleventh color"; break; // got amber
-            }
-
-            return currentAccentColor;
+            if (ResTextName.Opacity == 1)
+                ResTextName.Opacity = 0;
+            else
+                ResTextName.Opacity = 1;
         }
     }
 }

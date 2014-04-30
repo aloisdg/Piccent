@@ -90,9 +90,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="AccentManager.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ColorConverter.cs" />
     <Compile Include="ColorItem.cs" />
     <Compile Include="HSVHelper.cs" />
     <Compile Include="LocalizedStrings.cs" />
