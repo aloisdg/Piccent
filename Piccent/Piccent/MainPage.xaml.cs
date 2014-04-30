@@ -80,7 +80,7 @@ namespace Piccent
             Res.Background = new SolidColorBrush(color);
             string txt;
             ResText.Text = ColorConverter.ToHex(color);
-            ResTextName.Text = (am.AccentDictio.TryGetValue(color.ToString(), out txt)) ? txt : "error";
+            ResTextName.Text = (am.AccentDictio.TryGetValue(color.ToString(), out txt)) ? txt.ToUpper() : "ERROR";
         }
 
         #region search most numerous color
@@ -209,15 +209,17 @@ namespace Piccent
         #region tap message
         private void Src_Tap(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            ShowMessage(SrcText.Text);
+            if (SrcText.Text.StartsWith("#"))
+                ShowMessage(SrcText.Text);
         }
         private void Res_Tap(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            ShowMessage(ResText.Text);
+            if (ResText.Text.StartsWith("#"))
+                ShowMessage(ResText.Text);
         }
         private void ShowMessage(string hexa)
         {
-            MessageBoxResult result = MessageBox.Show(String.Format("Your color is {0}.{1}Save it to Clipboard ?", hexa, Environment.NewLine), "Color", MessageBoxButton.OKCancel);
+            MessageBoxResult result = MessageBox.Show(String.Format("Your color is {0}.{1}If Microsoft add a way to navigate to the setting \"start+theme\", I will use it !{1}{1}Save it to Clipboard ?", hexa, Environment.NewLine), "Color found !", MessageBoxButton.OKCancel);
 
             if (result == MessageBoxResult.OK)
             {
@@ -231,16 +233,20 @@ namespace Piccent
 
         private void Love_Click(object sender, RoutedEventArgs e)
         {
-            MarketplaceReviewTask marketplaceReviewTask = new MarketplaceReviewTask();
-            marketplaceReviewTask.Show();
+            if (DesignGrid.Opacity == 1)
+                DesignGrid.Opacity = 0;
+            else
+                DesignGrid.Opacity = 1;
+            //MarketplaceReviewTask marketplaceReviewTask = new MarketplaceReviewTask();
+            //marketplaceReviewTask.Show();
         }
 
-        private void ShowRes_Tap(object sender, System.Windows.Input.GestureEventArgs e)
-        {
-            if (ResTextName.Opacity == 1)
-                ResTextName.Opacity = 0;
-            else
-                ResTextName.Opacity = 1;
-        }
+        //private void ShowRes_Tap(object sender, System.Windows.Input.GestureEventArgs e)
+        //{
+        //    if (ResTextName.Opacity == 1)
+        //        ResTextName.Opacity = 0;
+        //    else
+        //        ResTextName.Opacity = 1;
+        //}
     }
 }
