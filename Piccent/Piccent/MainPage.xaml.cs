@@ -212,24 +212,30 @@ namespace Piccent
         #region tap message
         private void Src_Tap(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            if (SrcText.Text.StartsWith("#"))
-                ShowMessage(SrcText.Text);
+            if (!SrcText.Text.Equals("MAIN"))
+            {
+                MessageBoxResult result = MessageBox.Show(
+                    String.Format(@"Your color is {0}. This color does not exist in the basic palette.{1}You can ask for it on uservoice.{1}Do you want to navigate to it?",
+                                  SrcText.Text, Environment.NewLine),
+                                  "Nice color !", MessageBoxButton.OKCancel);
+
+                if (result == MessageBoxResult.OK)
+                {
+                    WebBrowserTask webBrowserTask = new WebBrowserTask();
+                    webBrowserTask.Uri = new Uri("http://windowsphone.uservoice.com/forums/101801-feature-suggestions/suggestions/2286613-set-tile-color-free-by-rgb", UriKind.Absolute);
+                    webBrowserTask.Show();
+                }
+                else if (result == MessageBoxResult.Cancel)
+                {
+                    // do nothing
+                }
+            }
         }
         private void Res_Tap(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            if (ResText.Text.StartsWith("#"))
-                ShowMessage(ResText.Text);
-        }
-        private void ShowMessage(string hexa)
-        {
-            MessageBoxResult result = MessageBox.Show(String.Format("Your color is {0}.{1}If Microsoft add a way to navigate to the setting \"start+theme\", I will use it !{1}{1}Save it to Clipboard ?", hexa, Environment.NewLine), "Color found !", MessageBoxButton.OKCancel);
-
-            if (result == MessageBoxResult.OK)
+            if (!ResText.Text.Equals("ACCENT"))
             {
-                Clipboard.SetText(hexa);
-            }
-            else if (result == MessageBoxResult.Cancel)
-            {
+                MessageBox.Show(String.Format("Your color is {0}.{1}If Microsoft add a way to navigate to the setting \"start+theme\", I will use it !", ResText.Text, Environment.NewLine), "Nice color !", MessageBoxButton.OK);
             }
         }
         #endregion
