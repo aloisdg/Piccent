@@ -24,6 +24,7 @@ namespace Piccent
         #region global
         PhotoChooserTask _photoChooserTask;
         BitmapImage _mainImage;
+        static bool isFirstTime = true;
         #endregion
 
         public MainPage()
@@ -46,11 +47,19 @@ namespace Piccent
                 WriteableBitmap wb = new WriteableBitmap(_mainImage);
                 //SearchColors(wb);
 
-                Debug.WriteLine(e.OriginalFileName);
-                Debug.WriteLine(e.ChosenPhoto.Length.ToString());
-
+                if (isFirstTime)
+                {
+                    HideTitle();
+                    isFirstTime = false;
+                }
                 DisplayColor(new SolidColorBrush(getDominantColor(wb)));
             }
+        }
+
+        private void HideTitle()
+        {
+            SrcTitle.Visibility = System.Windows.Visibility.Collapsed;
+            ResTitle.Visibility = System.Windows.Visibility.Collapsed;
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -62,7 +71,8 @@ namespace Piccent
         private void DisplayColor(SolidColorBrush scb)
         {
             Src.Background = scb;
-            SrcText.Text = ColorConverter.ToHex(scb.Color);
+            SrcTextHex.Text = ColorConverter.ToHex(scb.Color);
+            SrcTextRGB.Text = ColorConverter.ToRGB(scb.Color);
 
             HSVHelper.HSVData hsv = HSVHelper.ConvertColorToHSV(scb.Color);
             AccentManager am = new AccentManager();
@@ -82,7 +92,8 @@ namespace Piccent
             Color color = ColorConverter.FromHex(nearestColor);
             Res.Background = new SolidColorBrush(color);
             string txt;
-            ResText.Text = ColorConverter.ToHex(color);
+            ResTextHex.Text = ColorConverter.ToHex(color);
+            ResTextRGB.Text = ColorConverter.ToRGB(color);
             ResTextName.Text = (am.AccentDictio.TryGetValue(color.ToString(), out txt)) ? txt.ToUpper() : "ERROR";
         }
 
@@ -212,50 +223,40 @@ namespace Piccent
         #region tap message
         private void Src_Tap(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            if (!SrcText.Text.Equals("MAIN"))
-            {
-                MessageBoxResult result = MessageBox.Show(
-                    String.Format(@"Your color is {0}. This color does not exist in the basic palette.{1}You can ask for it on uservoice.{1}Do you want to navigate to it?",
-                                  SrcText.Text, Environment.NewLine),
-                                  "Nice color !", MessageBoxButton.OKCancel);
+            if (MainImage.Source == null)
+                return;
+            MessageBoxResult result = MessageBox.Show(
+                String.Format("Your color is {0}. This color does not exist in the basic palette.{1}You can ask for it on uservoice.{1}I am going to redirect you to it. Continue?",
+                SrcTextHex.Text, Environment.NewLine), "Nice color !", MessageBoxButton.OKCancel);
 
-                if (result == MessageBoxResult.OK)
-                {
-                    WebBrowserTask webBrowserTask = new WebBrowserTask();
-                    webBrowserTask.Uri = new Uri("http://windowsphone.uservoice.com/forums/101801-feature-suggestions/suggestions/2286613-set-tile-color-free-by-rgb", UriKind.Absolute);
-                    webBrowserTask.Show();
-                }
-                else if (result == MessageBoxResult.Cancel)
-                {
-                    // do nothing
-                }
-            }
+            if (result == MessageBoxResult.OK)
+                CallUserVoice();
         }
+
+        private void CallUserVoice()
+        {
+            WebBrowserTask webBrowserTask = new WebBrowserTask();
+            webBrowserTask.Uri = new Uri("http://windowsphone.uservoice.com/forums/101801-feature-suggestions/suggestions/2286613-set-tile-color-free-by-rgb", UriKind.Absolute);
+            webBrowserTask.Show();
+        }
+
         private void Res_Tap(object sender, System.Windows.Input.GestureEventArgs e)
         {
-            if (!ResText.Text.Equals("ACCENT"))
-            {
-                MessageBox.Show(String.Format("Your color is {0}.{1}If Microsoft add a way to navigate to the setting \"start+theme\", I will use it !", ResText.Text, Environment.NewLine), "Nice color !", MessageBoxButton.OK);
-            }
+            if (MainImage.Source == null)
+                return;
+            MessageBox.Show(
+                String.Format("Your color is {0}.{1}If Microsoft add a way to navigate to the setting \"start+theme\", I will use it here !",
+                ResTextHex.Text, Environment.NewLine), "Nice color !", MessageBoxButton.OK);
         }
         #endregion
 
         private void Love_Click(object sender, RoutedEventArgs e)
         {
-            if (DesignGrid.Opacity == 1)
-                DesignGrid.Opacity = 0;
-            else
-                DesignGrid.Opacity = 1;
+            //debug
+            DesignGrid.Opacity = DesignGrid.Opacity == 1 ? 0 : 1;
+
             //MarketplaceReviewTask marketplaceReviewTask = new MarketplaceReviewTask();
             //marketplaceReviewTask.Show();
         }
-
-        //private void ShowRes_Tap(object sender, System.Windows.Input.GestureEventArgs e)
-        //{
-        //    if (ResTextName.Opacity == 1)
-        //        ResTextName.Opacity = 0;
-        //    else
-        //        ResTextName.Opacity = 1;
-        //}
     }
 }
