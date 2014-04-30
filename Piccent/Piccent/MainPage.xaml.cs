@@ -46,6 +46,9 @@ namespace Piccent
                 WriteableBitmap wb = new WriteableBitmap(_mainImage);
                 //SearchColors(wb);
 
+                Debug.WriteLine(e.OriginalFileName);
+                Debug.WriteLine(e.ChosenPhoto.Length.ToString());
+
                 DisplayColor(new SolidColorBrush(getDominantColor(wb)));
             }
         }
