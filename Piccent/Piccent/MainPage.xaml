@@ -150,13 +150,13 @@
                     <RowDefinition Height="100"/>
                 </Grid.RowDefinitions>
                 <Grid Grid.Row="0" Margin="0,61,0,12">
-                    <Border Tap="Border_Tap" BorderThickness="3" BorderBrush="{Binding Background, ElementName=Src}">
+                    <Border BorderThickness="3" BorderBrush="{Binding Background, ElementName=Src}">
                         <Grid Background="Gray" Opacity="0.2"/>
                     </Border>
                     <Image x:Name="MainImage" Stretch="UniformToFill" VerticalAlignment="Center" HorizontalAlignment="Center" />
                 </Grid>
 
-                <!--<Grid Grid.Row="1" Height="62" x:Name="PaletteTap" Grid.Column="1" Margin="0,0,0,12" ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                <!--<Grid Grid.Row="0" VerticalAlignment="Bottom" Height="62" x:Name="PaletteTap" Margin="0,0,0,12" ScrollViewer.VerticalScrollBarVisibility="Disabled">
                     <ScrollViewer HorizontalAlignment="Center" VerticalAlignment="Center" ScrollViewer.HorizontalScrollBarVisibility="Hidden" ScrollViewer.VerticalScrollBarVisibility="Disabled">
                         <ListBox x:Name="ColorsList" ScrollViewer.VerticalScrollBarVisibility="Disabled">
                             <ListBox.ItemsPanel>

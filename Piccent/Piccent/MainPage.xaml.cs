@@ -36,6 +36,11 @@ namespace Piccent
         }
 
         #region get picture
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            _photoChooserTask.Show();
+        }
+
         private void photoChooserTask_Completed(object sender, PhotoResult e)
         {
             if (e.TaskResult == TaskResult.OK)
@@ -52,7 +57,9 @@ namespace Piccent
                     HideTitle();
                     isFirstTime = false;
                 }
-                DisplayColor(new SolidColorBrush(getDominantColor(wb)));
+
+                //GetPalette(wb);
+                DisplayColor(new SolidColorBrush(GetDominantColor(wb)));
             }
         }
 
@@ -61,17 +68,81 @@ namespace Piccent
             SrcTitle.Visibility = System.Windows.Visibility.Collapsed;
             ResTitle.Visibility = System.Windows.Visibility.Collapsed;
         }
-
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            _photoChooserTask.Show();
-        }
-
-        private void Border_Tap(object sender, System.Windows.Input.GestureEventArgs e)
-        {
-            _photoChooserTask.Show();
-        }
         #endregion
+
+
+
+        private void GetPalette(WriteableBitmap bmp)
+        {
+
+            if (bmp.Pixels.Length == 0)
+                return;
+
+            // limit white and black
+            // fixed by myself
+            const double limit = 0.265;
+
+
+            Dictionary<string, int> occulot = new Dictionary<string, int>();
+
+            var s2 = Stopwatch.StartNew();
+            for (int i = 0; i < bmp.Pixels.Length; i++)
+            {
+                Color clr = ColorConverter.FromInt(bmp.Pixels[i]);
+                HSVHelper.HSVData hsv = HSVHelper.ConvertColorToHSV(clr);
+
+                if (hsv.v > limit && hsv.s > limit)
+                {
+                    string accentColor = GetAccentColor(clr).ToString();
+                    if (occulot.ContainsKey(accentColor))
+                        occulot[accentColor]++;
+                    else
+                        occulot.Add(accentColor, 1);
+                }
+            }
+            s2.Stop();
+
+            Debug.WriteLine(((double)(s2.Elapsed.TotalSeconds)).ToString("0.00 s"));
+
+            var items = from pair in occulot orderby pair.Value descending select pair;
+
+            List<ColorItem> l = new List<ColorItem>();
+            foreach (var item in items)
+            {
+                l.Add(new ColorItem() { Background = item.Key.ToString() });
+            }
+
+            //ColorsList.ItemsSource = l;
+        }
+
+        private static Color FindNearestColor(Color current, List<Color> colors)
+        {
+            HSVHelper.HSVData hsv = HSVHelper.ConvertColorToHSV(current);
+            double diff = 360;
+
+            Color nearestColor = new Color();
+            foreach (var color in colors)
+            {
+                var tmp = color;
+                double abs = Math.Abs(HSVHelper.ConvertColorToHSV(tmp).h - hsv.h);
+                if (diff > abs)
+                {
+                    nearestColor = tmp;
+                    diff = abs;
+                }
+            }
+
+            return nearestColor;
+        }
+
+        private static Color GetAccentColor(Color src)
+        {
+            List<Color> colors = new List<Color>();
+            foreach (var hex in AccentManager.GetKeys())
+                colors.Add(ColorConverter.FromHex(hex));
+
+            return FindNearestColor(src, colors);
+        }
 
         private void DisplayColor(SolidColorBrush scb)
         {
@@ -79,25 +150,12 @@ namespace Piccent
             SrcTextHex.Text = ColorConverter.ToHex(scb.Color);
             SrcTextRGB.Text = ColorConverter.ToRGB(scb.Color);
 
-            HSVHelper.HSVData hsv = HSVHelper.ConvertColorToHSV(scb.Color);
-            
-            double diff = 360;
-            string nearestColor = "";
-            foreach (var hex in AccentManager.GetKeys())
-            {
-                double abs = Math.Abs(HSVHelper.ConvertColorToHSV(ColorConverter.FromHex(hex)).h - hsv.h);
-                if (diff > abs)
-                {
-                    nearestColor = hex;
-                    diff = abs;
-                }
-            }
+            Color nearestColor = GetAccentColor(scb.Color);
 
-            Color color = ColorConverter.FromHex(nearestColor);
-            Res.Background = new SolidColorBrush(color);
-            ResTextHex.Text = ColorConverter.ToHex(color);
-            ResTextRGB.Text = ColorConverter.ToRGB(color);
-            string name = AccentManager.GetName(color.ToString());
+            Res.Background = new SolidColorBrush(nearestColor);
+            ResTextHex.Text = ColorConverter.ToHex(nearestColor);
+            ResTextRGB.Text = ColorConverter.ToRGB(nearestColor);
+            string name = AccentManager.GetName(nearestColor.ToString());
             ResTextName.Text = !String.IsNullOrWhiteSpace(name) ? name.ToUpper() : "ERROR";
         }
 
@@ -133,6 +191,7 @@ namespace Piccent
 
         #region search avg color
         // http://stackoverflow.com/questions/1068373/how-to-calculate-the-average-rgb-color-values-of-a-bitmap
+        #region fast code cant use
         /*private Color CalculateAverageColor(WriteableBitmap bm)
         {
             int width = bm.PixelWidth;
@@ -182,8 +241,10 @@ namespace Piccent
 
             return Color.FromArgb((byte)255, (byte)avgR, (byte)avgG, (byte)avgB);
         }*/
+        #endregion
 
-        public static Color getDominantColor(WriteableBitmap bmp)
+        #region algos
+        private static Color RunOldAlgo(WriteableBitmap bmp)
         {
             if (bmp.Pixels.Length == 0)
                 return Colors.White;
@@ -199,6 +260,7 @@ namespace Piccent
 
             int tot = 0;
 
+            var s1 = Stopwatch.StartNew();
             for (int x = 0; x < bmp.PixelWidth; x++)
             {
                 for (int y = 0; y < bmp.PixelHeight; y++)
@@ -215,12 +277,61 @@ namespace Piccent
                     }
                 }
             }
+            s1.Stop();
+            Debug.WriteLine((s1.Elapsed.TotalSeconds).ToString("0.00 s"));
+
+            if (tot == 0)
+                tot = 1;
+
+            return Color.FromArgb((byte)255, (byte)(r / tot), (byte)(g / tot), (byte)(b / tot));
+        }
+        private static Color RunNewAlgo(WriteableBitmap bmp)
+        {
+            if (bmp.Pixels.Length == 0)
+                return Colors.White;
+
+            // limit white and black
+            // fixed by myself
+            const double limit = 0.265;
+
+            //Used for tally
+            int r = 0;
+            int g = 0;
+            int b = 0;
+
+            int tot = 0;
+
+            var s2 = Stopwatch.StartNew();
+            for (int i = 0; i < bmp.Pixels.Length; i++)
+            {
+                Color clr = ColorConverter.FromInt(bmp.Pixels[i]);
+                HSVHelper.HSVData hsv = HSVHelper.ConvertColorToHSV(clr);
+
+                if (hsv.v > limit && hsv.s > limit)
+                {
+                    r += clr.R;
+                    g += clr.G;
+                    b += clr.B;
+                    tot++;
+                }
+            }
+            s2.Stop();
+
+            Debug.WriteLine(((double)(s2.Elapsed.TotalSeconds)).ToString("0.00 s"));
 
             // be sure to not divide by 0
             if (tot == 0)
                 tot = 1;
 
             return Color.FromArgb((byte)255, (byte)(r / tot), (byte)(g / tot), (byte)(b / tot));
+        }
+        #endregion
+
+        public static Color GetDominantColor(WriteableBitmap bmp)
+        {
+            //var color1 = RunOldAlgo(bmp);
+            var color2 = RunNewAlgo(bmp);
+            return color2;
         }
         #endregion
 

@@ -7,6 +7,7 @@ namespace Piccent
 
     public static class AccentManager
     {
+        // http://stackoverflow.com/questions/268084/creating-a-constant-dictionary-in-c-sharp
         static Dictionary<string, string> _accentDictio = new Dictionary<string, string>()
         {
             { "#FFA4C400", "Lime"    },
@@ -31,15 +32,17 @@ namespace Piccent
             { "#FF87794E", "Taupe"   }
         };
 
+        #region method
         public static string GetName(string hex)
         {
             string value;
             return _accentDictio.TryGetValue(hex, out value) ? value : null;
         }
 
-        public static Dictionary<string,string>.KeyCollection GetKeys()
+        public static Dictionary<string, string>.KeyCollection GetKeys()
         {
             return _accentDictio.Keys;
         }
+        #endregion
     }
 }

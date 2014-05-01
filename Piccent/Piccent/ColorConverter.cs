@@ -10,6 +10,7 @@ namespace Piccent
 {
     public static class ColorConverter
     {
+        #region hex converter
         public static string ToHex(this Color c)
         {
             //string s = c.ToString(); #FFbada55
@@ -24,25 +25,33 @@ namespace Piccent
                     Convert.ToByte(hex.Substring(5, 2), 16),
                     Convert.ToByte(hex.Substring(7, 2), 16));
         }
+#endregion
 
+        #region rgb converter
         public static string ToRGB(this Color c)
         {
-            //Debug.WriteLine(String.Format("{0} {1} {2}", c.R.AddPadding(), c.G.AddPadding(), c.B.AddPadding()));
             return String.Format("{0} {1} {2}", c.R.ToString(), c.G.ToString(), c.B.ToString());
         }
+        #endregion
 
-        //private static string AddPadding(this byte b)
-        //{
-        //    string s = b.ToString();
+        #region int converter
+        // http://stackoverflow.com/a/9674793/1248177
+        public static int ToInt(Color c)
+        {
+            var argb32 = c.A << 24 | c.R << 16 | c.G << 8 | c.B;
+            return argb32;
+        }
 
-        //    //s = s.PadLeft(3 - s.Length, ' ');
-
-        //    for (int i = 0; i < 4 - s.Length; i++)
-        //    {
-        //        s = ' ' + s;
-        //        Debug.WriteLine(s);
-        //    }
-        //    return s;
-        //}
+        public static Color FromInt(int argb32)
+        {
+            const int mask = 0x000000FF;
+            byte a, r, g, b;
+            a = (byte)((argb32 >> 24) & mask);
+            r = (byte)((argb32 >> 16) & mask);
+            g = (byte)((argb32 >> 8) & mask);
+            b = (byte)(argb32 & mask);
+            return Color.FromArgb(a, r, g, b);
+        }
+        #endregion
     }
 }
