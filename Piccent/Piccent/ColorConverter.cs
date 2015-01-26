@@ -14,7 +14,7 @@ namespace Piccent
         public static string ToHex(this Color c)
         {
             //string s = c.ToString(); #FFbada55
-            return String.Format("#{0}{1}{2}", c.R.ToString("X2"), c.G.ToString("X2"), c.B.ToString("X2"));
+            return String.Concat("#", c.R.ToString("X2"), c.G.ToString("X2"), c.B.ToString("X2"));
         }
 
         public static Color FromHex(this string hex)
@@ -25,12 +25,13 @@ namespace Piccent
                     Convert.ToByte(hex.Substring(5, 2), 16),
                     Convert.ToByte(hex.Substring(7, 2), 16));
         }
-#endregion
+        #endregion
 
         #region rgb converter
         public static string ToRGB(this Color c)
         {
-            return String.Format("{0} {1} {2}", c.R.ToString(), c.G.ToString(), c.B.ToString());
+            return String.Join(" ", c.R.ToString(), c.G.ToString(), c.B.ToString());
+            //return String.Format("{0} {1} {2}",);
         }
         #endregion
 

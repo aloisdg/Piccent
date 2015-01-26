@@ -22,9 +22,10 @@ namespace Piccent
     public partial class MainPage : PhoneApplicationPage
     {
         #region global
-        PhotoChooserTask _photoChooserTask;
+
+        readonly PhotoChooserTask _photoChooserTask;
         BitmapImage _mainImage;
-        static bool isFirstTime = true;
+        static bool _isFirstTime = true;
         #endregion
 
         public MainPage()
@@ -43,24 +44,23 @@ namespace Piccent
 
         private void photoChooserTask_Completed(object sender, PhotoResult e)
         {
-            if (e.TaskResult == TaskResult.OK)
+            if (e.TaskResult != TaskResult.OK)
+                return;
+            _mainImage = new BitmapImage();
+            _mainImage.SetSource(e.ChosenPhoto);
+            MainImage.Source = _mainImage;
+
+            WriteableBitmap wb = new WriteableBitmap(_mainImage);
+            //SearchColors(wb);
+
+            if (_isFirstTime)
             {
-                _mainImage = new BitmapImage();
-                _mainImage.SetSource(e.ChosenPhoto);
-                MainImage.Source = _mainImage;
-
-                WriteableBitmap wb = new WriteableBitmap(_mainImage);
-                //SearchColors(wb);
-
-                if (isFirstTime)
-                {
-                    HideTitle();
-                    isFirstTime = false;
-                }
-
-                //GetPalette(wb);
-                DisplayColor(new SolidColorBrush(GetDominantColor(wb)));
+                HideTitle();
+                _isFirstTime = false;
             }
+
+            //GetPalette(wb);
+            DisplayColor(new SolidColorBrush(GetDominantColor(wb)));
         }
 
         private void HideTitle()
@@ -86,14 +86,14 @@ namespace Piccent
             Dictionary<string, int> occulot = new Dictionary<string, int>();
 
             var s2 = Stopwatch.StartNew();
-            for (int i = 0; i < bmp.Pixels.Length; i++)
+            foreach (int t in bmp.Pixels)
             {
-                Color clr = ColorConverter.FromInt(bmp.Pixels[i]);
+                Color clr = ColorConverter.FromInt(t);
                 HSVHelper.HSVData hsv = HSVHelper.ConvertColorToHSV(clr);
 
                 if (hsv.v > limit && hsv.s > limit)
                 {
-                    string accentColor = GetAccentColor(clr).ToString();
+                    var accentColor = GetAccentColor(clr).ToString();
                     if (occulot.ContainsKey(accentColor))
                         occulot[accentColor]++;
                     else
@@ -106,11 +106,7 @@ namespace Piccent
 
             var items = from pair in occulot orderby pair.Value descending select pair;
 
-            List<ColorItem> l = new List<ColorItem>();
-            foreach (var item in items)
-            {
-                l.Add(new ColorItem() { Background = item.Key.ToString() });
-            }
+            List<ColorItem> l = items.Select(item => new ColorItem {Background = item.Key.ToString()}).ToList();
 
             //ColorsList.ItemsSource = l;
         }
@@ -137,9 +133,7 @@ namespace Piccent
 
         private static Color GetAccentColor(Color src)
         {
-            List<Color> colors = new List<Color>();
-            foreach (var hex in AccentManager.GetKeys())
-                colors.Add(ColorConverter.FromHex(hex));
+            List<Color> colors = AccentManager.GetKeys().Select(hex => hex.FromHex()).ToList();
 
             return FindNearestColor(src, colors);
         }
@@ -147,14 +141,14 @@ namespace Piccent
         private void DisplayColor(SolidColorBrush scb)
         {
             Src.Background = scb;
-            SrcTextHex.Text = ColorConverter.ToHex(scb.Color);
-            SrcTextRGB.Text = ColorConverter.ToRGB(scb.Color);
+            SrcTextHex.Text = scb.Color.ToHex();
+            SrcTextRGB.Text = scb.Color.ToRGB();
 
             Color nearestColor = GetAccentColor(scb.Color);
 
             Res.Background = new SolidColorBrush(nearestColor);
-            ResTextHex.Text = ColorConverter.ToHex(nearestColor);
-            ResTextRGB.Text = ColorConverter.ToRGB(nearestColor);
+            ResTextHex.Text = nearestColor.ToHex();
+            ResTextRGB.Text = nearestColor.ToRGB();
             string name = AccentManager.GetName(nearestColor.ToString());
             ResTextName.Text = !String.IsNullOrWhiteSpace(name) ? name.ToUpper() : "ERROR";
         }
